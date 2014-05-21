@@ -1,4 +1,4 @@
 nsiparser
 =========
 
-Porject for uplodaing you Native Instruments Traktor Palylists and get them well processed back.
+Porject for uplodaing your Native Instruments Traktor Palylists and get them well processed back.
