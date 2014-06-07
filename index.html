@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="app">
+<head>
+    <title>Traktor Playlist Parser</title>
+    <script src="jquery-1.11.1.min.js"></script>
+    <script src="angular.min.js"></script>
+    <script src="es5-shim.min.js"></script>
+    <script src="angular-file-upload.min.js"></script>
+    <script src="app.js"></script>
+    <style>
+        #drop_zone {
+            border: 2px dashed #bbb;
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            padding: 25px;
+            text-align: center;
+            font: 20pt bold 'Vollkorn';
+            color: #bbb;
+        }
+    </style>
+</head>
+<body ng-controller="mainCtrl">
+    <div><span>{{Hello}}</span>&nbsp;<span>{{World}}</span></div>
+    <div>{{Requirments}}</div>
+    <output id="list"></output>
+    <div id="drop_zone">Drop files here</div>
+    <!--<div><input type="file" id="files" name="files[]" multiple /></div>-->
+</body>
+</html>
