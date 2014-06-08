@@ -16,7 +16,6 @@ var app = angular.module('app', [])
             var files = evt.dataTransfer.files; // FileList object.
 
             // files is a FileList of File objects. List some properties.
-            var output = [];
             var playlistOutput = [];
             var fileReader = new FileReader();
             fileReader.onload = function (evt) {
@@ -50,9 +49,6 @@ var app = angular.module('app', [])
                         var collectionEntryLocation = $(this).find("LOCATION");
                         if (collectionEntryLocation.attr("VOLUMEID") + collectionEntryLocation.attr("DIR")
                             + collectionEntryLocation.attr("FILE") == playListEntryKey) {
-                            //console.log(playListEntrySartTimeAsDate.toString('HH:mm:ss') +
-                            //    " " + absoluteTime.toString('HH:mm:ss') + " " + $.trim(collectionEntryArtist) + " - "
-                            //    + $.trim(collectionEntryTile));
                             playlistOutput.push("<li>" + targetTime.toString('HH:mm:ss') + " "
                                 + $.trim(collectionEntryArtist) + " - "
                                 + $.trim(collectionEntryTile) + "</li>");
@@ -62,13 +58,6 @@ var app = angular.module('app', [])
 
                 $("#playlist").html("<ul>" + playlistOutput.join("") + "</ul>");
             };
-            for (var i = 0, file; file = files[i]; i++) {
-                output.push('<li><strong>', escape(file.name), '</strong> (', file.type || 'n/a', ') - ',
-                            file.size, ' bytes, last modified: ',
-                            file.lastModifiedDate.toLocaleDateString(), '</li>');
-                fileReader.readAsText(file);
-            }
-            $("#list").html('<ul>' + output.join('') + '</ul>');
         };
 
         $scope.handleDragOver = function (evt) {
