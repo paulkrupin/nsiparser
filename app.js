@@ -40,8 +40,10 @@ var app = angular.module('app', [])
                 var initialMinutes = -$scope.initialTimeAsDate.getMinutes();
                 var initialSeconds = -$scope.initialTimeAsDate.getSeconds();
 
-
-
+                if ($scope.playlistOutput.length > 0) {
+                    $scope.playlistOutput = [];
+                }
+                
                 $scope.playListEntries.each(function () {
                     var needAbsoluteTime = $("input[id='absolute_time']:checked").length == 1;
                     var playlistEntryPimaryKey = $(this).find("PRIMARYKEY");
