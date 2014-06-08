@@ -1,9 +1,7 @@
 ﻿'use strict';
-var app = angular.module('app', ['angularFileUpload'])
+var app = angular.module('app', [])
 .controller('mainCtrl', ['$scope',
     function ($scope) {
-        $scope.Hello = 'Hello';
-        $scope.World = 'World!';
         $scope.Requirments = 'Sorry your browser doesn\'t support File API. :(';
 
         if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -19,11 +17,50 @@ var app = angular.module('app', ['angularFileUpload'])
 
             // files is a FileList of File objects. List some properties.
             var output = [];
+            var playlistOutput = [];
             var fileReader = new FileReader();
             fileReader.onload = function (evt) {
                 //console.log(evt.target.result);
                 var res = evt.target.result;
-                console.log($(res).find('PLAYLISTS')[0].outerHTML);
+                var xmlDom = $.xmlDOM(res);
+                var collectionEntries = xmlDom.find("COLLECTION > ENTRY");
+                var playListEntries = xmlDom.find("NODE[TYPE='PLAYLIST'][NAME='HISTORY'] > PLAYLIST > ENTRY");
+                var initialTime = $(playListEntries[0]).find("EXTENDEDDATA").attr("STARTTIME");
+                var initialTimeAsDate = (new Date).clearTime().addSeconds(initialTime);
+                var initialHours = -initialTimeAsDate.getHours();
+                var initialMinutes = -initialTimeAsDate.getMinutes();
+                var initialSeconds = -initialTimeAsDate.getSeconds();
+
+
+
+                playListEntries.each(function () {
+                    var needAbsoluteTime = $("input[id='absolute_time']:checked").length == 1;
+                    var playlistEntryPimaryKey = $(this).find("PRIMARYKEY");
+                    var plyaListEntryExtendData = $(this).find("EXTENDEDDATA");
+                    var playListEntryKey = playlistEntryPimaryKey.attr("KEY");
+                    var playListEntryStartDate = plyaListEntryExtendData.attr("STARTDATE");
+                    var playListEntryStartTime = plyaListEntryExtendData.attr("STARTTIME");
+                    var playListEntrySartTimeAsDate = (new Date).clearTime().addSeconds(playListEntryStartTime);
+                    var absoluteTime = (new Date).clearTime().addSeconds(playListEntryStartTime).addHours(initialHours)
+                    .addMinutes(initialMinutes).addSeconds(initialSeconds);
+                    var targetTime = needAbsoluteTime ? absoluteTime : playListEntrySartTimeAsDate;
+                    collectionEntries.each(function () {
+                        var collectionEntryArtist = $(this).attr("ARTIST");
+                        var collectionEntryTile = $(this).attr("TITLE");
+                        var collectionEntryLocation = $(this).find("LOCATION");
+                        if (collectionEntryLocation.attr("VOLUMEID") + collectionEntryLocation.attr("DIR")
+                            + collectionEntryLocation.attr("FILE") == playListEntryKey) {
+                            //console.log(playListEntrySartTimeAsDate.toString('HH:mm:ss') +
+                            //    " " + absoluteTime.toString('HH:mm:ss') + " " + $.trim(collectionEntryArtist) + " - "
+                            //    + $.trim(collectionEntryTile));
+                            playlistOutput.push("<li>" + targetTime.toString('HH:mm:ss') + " "
+                                + $.trim(collectionEntryArtist) + " - "
+                                + $.trim(collectionEntryTile) + "</li>");
+                        }
+                    });
+                });
+
+                $("#playlist").html("<ul>" + playlistOutput.join("") + "</ul>");
             };
             for (var i = 0, file; file = files[i]; i++) {
                 output.push('<li><strong>', escape(file.name), '</strong> (', file.type || 'n/a', ') - ',
@@ -31,7 +68,7 @@ var app = angular.module('app', ['angularFileUpload'])
                             file.lastModifiedDate.toLocaleDateString(), '</li>');
                 fileReader.readAsText(file);
             }
-            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+            $("#list").html('<ul>' + output.join('') + '</ul>');
         };
 
         $scope.handleDragOver = function (evt) {
@@ -44,7 +81,4 @@ var app = angular.module('app', ['angularFileUpload'])
         var dropZone = document.getElementById('drop_zone');
         dropZone.addEventListener('dragover', $scope.handleDragOver, false);
         dropZone.addEventListener('drop', $scope.handleFileSelect, false);
-
-        //document.getElementById('files').addEventListener('change', $scope.handleFileSelect, false);
-        //document.getElementById('files').addEventListener('change', handleFileSelect, false);
     }]);
