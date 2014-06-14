@@ -7,6 +7,8 @@ var app = angular.module('app', [])
         $scope.xmlDom = null;
         $scope.collectionEntries = null;
         $scope.playListEntries = null;
+        $scope.initialDate = null;
+        $scope.initalDateAsDate = null;
         $scope.initialTime = null;
         $scope.initialTimeAsDate = null;
         $scope.playlistOutput = [];
@@ -30,19 +32,18 @@ var app = angular.module('app', [])
             }
 
             fileReader.onload = function (evt) {
+                $scope.playlistOutput = [];
                 $scope.result = evt.target.result;
                 $scope.xmlDom = $.xmlDOM($scope.result);
                 $scope.collectionEntries = $scope.xmlDom.find("COLLECTION > ENTRY");
                 $scope.playListEntries = $scope.xmlDom.find("NODE[TYPE='PLAYLIST'][NAME='HISTORY'] > PLAYLIST > ENTRY");
+                
                 $scope.initialTime = $($scope.playListEntries[0]).find("EXTENDEDDATA").attr("STARTTIME");
+                
                 $scope.initialTimeAsDate = (new Date).clearTime().addSeconds($scope.initialTime);
                 var initialHours = -$scope.initialTimeAsDate.getHours();
                 var initialMinutes = -$scope.initialTimeAsDate.getMinutes();
                 var initialSeconds = -$scope.initialTimeAsDate.getSeconds();
-
-                if ($scope.playlistOutput.length > 0) {
-                    $scope.playlistOutput = [];
-                }
                 
                 $scope.playListEntries.each(function () {
                     var needAbsoluteTime = $("input[id='absolute_time']:checked").length == 1;
