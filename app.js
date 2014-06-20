@@ -7,8 +7,11 @@ var app = angular.module('app', [])
         $scope.xmlDom = null;
         $scope.collectionEntries = null;
         $scope.playListEntries = null;
-        $scope.initialDate = null;
+        $scope.initialPackedDate = null;
         $scope.initalDateAsDate = null;
+        $scope.initialUnpackedYear = null;
+        $scope.initialUnpackedMonth = null;
+        $scope.initialUnpackedDay = null;
         $scope.initialTime = null;
         $scope.initialTimeAsDate = null;
         $scope.playlistOutput = [];
@@ -39,8 +42,12 @@ var app = angular.module('app', [])
                 $scope.playListEntries = $scope.xmlDom.find("NODE[TYPE='PLAYLIST'][NAME='HISTORY'] > PLAYLIST > ENTRY");
                 
                 $scope.initialTime = $($scope.playListEntries[0]).find("EXTENDEDDATA").attr("STARTTIME");
-                
+                $scope.initialPackedDate = $($scope.playListEntries[0]).find("EXTENDEDDATA").attr("STARTDATE");
+                $scope.initialUnpackedYear = $scope.initialPackedDate >> 16;
+                $scope.initialUnpackedMonth = ($scope.initialPackedDate >> 8) & 255;
+                $scope.initialUnpackedDay = $scope.initialPackedDate & 255;                                
                 $scope.initialTimeAsDate = (new Date).clearTime().addSeconds($scope.initialTime);
+                $scope.initalDateAsDate = new Date($scope.initialUnpackedYear, ($scope.initialUnpackedMonth - 1), $scope.initialUnpackedDay);
                 var initialHours = -$scope.initialTimeAsDate.getHours();
                 var initialMinutes = -$scope.initialTimeAsDate.getMinutes();
                 var initialSeconds = -$scope.initialTimeAsDate.getSeconds();
