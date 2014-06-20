@@ -24,7 +24,6 @@ var app = angular.module('app', [])
             evt.stopPropagation();
             evt.preventDefault();
 
-            //var files = evt.target.files; // FileList object
             var files = evt.dataTransfer.files; // FileList object.
 
             // files is a FileList of File objects. List some properties.
@@ -47,22 +46,34 @@ var app = angular.module('app', [])
                 $scope.initialUnpackedMonth = ($scope.initialPackedDate >> 8) & 255;
                 $scope.initialUnpackedDay = $scope.initialPackedDate & 255;                                
                 $scope.initialTimeAsDate = (new Date).clearTime().addSeconds($scope.initialTime);
-                $scope.initalDateAsDate = new Date($scope.initialUnpackedYear, ($scope.initialUnpackedMonth - 1), $scope.initialUnpackedDay);
-                var initialHours = -$scope.initialTimeAsDate.getHours();
-                var initialMinutes = -$scope.initialTimeAsDate.getMinutes();
-                var initialSeconds = -$scope.initialTimeAsDate.getSeconds();
+                $scope.initalDateAsDate = new Date($scope.initialUnpackedYear,
+                    ($scope.initialUnpackedMonth - 1),
+                    $scope.initialUnpackedDay,
+                    $scope.initialTimeAsDate.getHours(),
+                    $scope.initialTimeAsDate.getMinutes(),
+                    $scope.initialTimeAsDate.getSeconds());
                 
                 $scope.playListEntries.each(function () {
                     var needAbsoluteTime = $("input[id='absolute_time']:checked").length == 1;
                     var playlistEntryPimaryKey = $(this).find("PRIMARYKEY");
                     var plyaListEntryExtendData = $(this).find("EXTENDEDDATA");
                     var playListEntryKey = playlistEntryPimaryKey.attr("KEY");
-                    var playListEntryStartDate = plyaListEntryExtendData.attr("STARTDATE");
                     var playListEntryStartTime = plyaListEntryExtendData.attr("STARTTIME");
                     var playListEntrySartTimeAsDate = (new Date).clearTime().addSeconds(playListEntryStartTime);
-                    var absoluteTime = (new Date).clearTime().addSeconds(playListEntryStartTime).addHours(initialHours)
-                    .addMinutes(initialMinutes).addSeconds(initialSeconds);
-                    var targetTime = needAbsoluteTime ? absoluteTime : playListEntrySartTimeAsDate;
+                    var playListEntryPackedDate = plyaListEntryExtendData.attr("STARTDATE");
+                    var playListEntryUnpackedYear = playListEntryPackedDate >> 16;
+                    var playListEntryUnpackedMonth = (playListEntryPackedDate >> 8) & 255;
+                    var playListEntryUnpackedDay = playListEntryPackedDate & 255;
+                    var playListEntryDate = new Date(playListEntryUnpackedYear,
+                        (playListEntryUnpackedMonth - 1),
+                        playListEntryUnpackedDay,
+                        playListEntrySartTimeAsDate.getHours(),
+                        playListEntrySartTimeAsDate.getMinutes(),
+                        playListEntrySartTimeAsDate.getSeconds());
+                    var timeSpan = new TimeSpan(playListEntryDate - $scope.initalDateAsDate);
+                    var absoluteTime = (new Date).clearTime().addHours(timeSpan.hours).addMinutes(timeSpan.minutes)
+                        .addSeconds(timeSpan.seconds);
+                    var targetTime = needAbsoluteTime ? absoluteTime : playListEntryDate;
                     $scope.collectionEntries.each(function () {
                         var collectionEntryArtist = $(this).attr("ARTIST");
                         var collectionEntryTile = $(this).attr("TITLE");
