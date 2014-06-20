@@ -88,6 +88,8 @@ var app = angular.module('app', [])
                 });
 
                 $("#playlist").html("<ul>" + $scope.playlistOutput.join("") + "</ul>");
+                $("#playlist").removeClass('invisible');
+                //$("#code").removeClass('invisible');
             };
         };
 

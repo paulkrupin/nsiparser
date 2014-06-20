@@ -9,28 +9,48 @@
     <script src="angular.min.js"></script>
     <script src="app.js"></script>
     <style>
-        #drop_zone
-        {
+        .dashed-border {
             border: 2px dashed #bbb;
             -moz-border-radius: 5px;
             -webkit-border-radius: 5px;
             border-radius: 5px;
+        }
+
+        #drop_zone {
             padding: 25px;
             text-align: center;
             font: 20pt bold 'Vollkorn';
             color: #bbb;
         }
 
-        #playlist li
-        {
+        #playlist {
+            float: left;
+            width: 50%;
+            margin-top: 0.5em;
+        }
+
+        #code {
+            float: right;
+            min-width: 30%;
+            max-width: 50%;
+            height: 100%;
+            margin-top: 0.5em;
+        }
+
+        .invisible {
+            display: none;
+        }
+
+        #playlist li {
             list-style: none;
         }
     </style>
 </head>
-<body ng-controller="mainCtrl">    
+<body ng-controller="mainCtrl">
     <div>{{Requirments}}</div>
     <input id="absolute_time" type="checkbox" />&nbsp;Absolute time
-    <div id="drop_zone">Drop files here</div>
-    <div id="playlist"></div>
+    <div id="drop_zone" class="dashed-border">Drop files here</div>
+    <div id="playlist" class="dashed-border invisible"></div>
+    <!--<div id="code" class="dashed-border invisible"></div>-->
 </body>
 </html>
