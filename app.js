@@ -1,106 +1,108 @@
 ﻿'use strict';
-var app = angular.module('app', [])
-.controller('mainCtrl', ['$scope',
-    function ($scope) {
-        $scope.Requirments = 'Sorry your browser doesn\'t support File API. :(';
-        $scope.result = null;
-        $scope.xmlDom = null;
-        $scope.collectionEntries = null;
-        $scope.playListEntries = null;
-        $scope.initialPackedDate = null;
-        $scope.initalDateAsDate = null;
-        $scope.initialUnpackedYear = null;
-        $scope.initialUnpackedMonth = null;
-        $scope.initialUnpackedDay = null;
-        $scope.initialTime = null;
-        $scope.initialTimeAsDate = null;
-        $scope.playlistOutput = [];
 
-        if (window.File && window.FileReader && window.FileList && window.Blob) {
-            $scope.Requirments = 'All requirments are met.';
-        }
+var handleDragOver = function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+    evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
+};
 
-        $scope.handleFileSelect = function (evt) {
-            evt.stopPropagation();
-            evt.preventDefault();
+var handleFileSelect = function (evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
 
-            var files = evt.dataTransfer.files; // FileList object.
+    var files = evt.dataTransfer.files; // FileList object.
 
-            // files is a FileList of File objects. List some properties.
-            var fileReader = new FileReader();
+    // files is a FileList of File objects. List some properties.
+    var fileReader = new FileReader();
 
-            for (var i = 0, file; file = files[i]; i++) {
-                fileReader.readAsText(file);
-            }
+    for (var i = 0, file; file = files[i]; i++) {
+        fileReader.readAsText(file);
+    }
 
-            fileReader.onload = function (evt) {
-                $scope.playlistOutput = [];
-                $scope.result = evt.target.result;
-                $scope.xmlDom = $.xmlDOM($scope.result);
-                $scope.collectionEntries = $scope.xmlDom.find("COLLECTION > ENTRY");
-                $scope.playListEntries = $scope.xmlDom.find("NODE[TYPE='PLAYLIST'][NAME='HISTORY'] > PLAYLIST > ENTRY");
-                
-                $scope.initialTime = $($scope.playListEntries[0]).find("EXTENDEDDATA").attr("STARTTIME");
-                $scope.initialPackedDate = $($scope.playListEntries[0]).find("EXTENDEDDATA").attr("STARTDATE");
-                $scope.initialUnpackedYear = $scope.initialPackedDate >> 16;
-                $scope.initialUnpackedMonth = ($scope.initialPackedDate >> 8) & 255;
-                $scope.initialUnpackedDay = $scope.initialPackedDate & 255;                                
-                $scope.initialTimeAsDate = (new Date).clearTime().addSeconds($scope.initialTime);
-                $scope.initalDateAsDate = new Date($scope.initialUnpackedYear,
-                    ($scope.initialUnpackedMonth - 1),
-                    $scope.initialUnpackedDay,
-                    $scope.initialTimeAsDate.getHours(),
-                    $scope.initialTimeAsDate.getMinutes(),
-                    $scope.initialTimeAsDate.getSeconds());
-                
-                $scope.playListEntries.each(function () {
-                    var needAbsoluteTime = $("input[id='absolute_time']:checked").length == 1;
-                    var playlistEntryPimaryKey = $(this).find("PRIMARYKEY");
-                    var plyaListEntryExtendData = $(this).find("EXTENDEDDATA");
-                    var playListEntryKey = playlistEntryPimaryKey.attr("KEY");
-                    var playListEntryStartTime = plyaListEntryExtendData.attr("STARTTIME");
-                    var playListEntrySartTimeAsDate = (new Date).clearTime().addSeconds(playListEntryStartTime);
-                    var playListEntryPackedDate = plyaListEntryExtendData.attr("STARTDATE");
-                    var playListEntryUnpackedYear = playListEntryPackedDate >> 16;
-                    var playListEntryUnpackedMonth = (playListEntryPackedDate >> 8) & 255;
-                    var playListEntryUnpackedDay = playListEntryPackedDate & 255;
-                    var playListEntryDate = new Date(playListEntryUnpackedYear,
-                        (playListEntryUnpackedMonth - 1),
-                        playListEntryUnpackedDay,
-                        playListEntrySartTimeAsDate.getHours(),
-                        playListEntrySartTimeAsDate.getMinutes(),
-                        playListEntrySartTimeAsDate.getSeconds());
-                    var timeSpan = new TimeSpan(playListEntryDate - $scope.initalDateAsDate);
-                    var absoluteTime = (new Date).clearTime().addHours(timeSpan.hours).addMinutes(timeSpan.minutes)
-                        .addSeconds(timeSpan.seconds);
-                    var targetTime = needAbsoluteTime ? absoluteTime : playListEntryDate;
-                    $scope.collectionEntries.each(function () {
-                        var collectionEntryArtist = $(this).attr("ARTIST");
-                        var collectionEntryTile = $(this).attr("TITLE");
-                        var collectionEntryLocation = $(this).find("LOCATION");
-                        if (collectionEntryLocation.attr("VOLUMEID") + collectionEntryLocation.attr("DIR")
-                            + collectionEntryLocation.attr("FILE") == playListEntryKey) {
-                            $scope.playlistOutput.push("<li>" + targetTime.toString('HH:mm:ss') + " "
-                                + $.trim(collectionEntryArtist) + " - "
-                                + $.trim(collectionEntryTile) + "</li>");
-                        }
-                    });
-                });
+    fileReader.onload = function (evt) {
+        var playlistOutput = [];
+        var result = evt.target.result;
+        var xmlDom = $.xmlDOM(result);
+        var collectionEntries = xmlDom.find('COLLECTION > ENTRY');
+        var playListEntries = xmlDom.find('NODE[TYPE=\'PLAYLIST\'][NAME=\'HISTORY\'] > PLAYLIST > ENTRY');
 
-                $("#playlist").html("<ul>" + $scope.playlistOutput.join("") + "</ul>");
-                $("#playlist").removeClass('invisible');
-                //$("#code").removeClass('invisible');
-            };
-        };
+        var initialTime = $(playListEntries[0]).find('EXTENDEDDATA').attr('STARTTIME');
+        var initialPackedDate = $(playListEntries[0]).find('EXTENDEDDATA').attr('STARTDATE');
+        var initialUnpackedYear = initialPackedDate >> 16;
+        var initialUnpackedMonth = (initialPackedDate >> 8) & 255;
+        var initialUnpackedDay = initialPackedDate & 255;
+        var initialTimeAsDate = (new Date).clearTime().addSeconds(initialTime);
+        var initalDateAsDate = new Date(initialUnpackedYear,
+            (initialUnpackedMonth - 1),
+            initialUnpackedDay,
+            initialTimeAsDate.getHours(),
+            initialTimeAsDate.getMinutes(),
+            initialTimeAsDate.getSeconds());
 
-        $scope.handleDragOver = function (evt) {
-            evt.stopPropagation();
-            evt.preventDefault();
-            evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
-        };
+        playListEntries.each(function () {
+            var needAbsoluteTime = document.getElementById('absolute_time').checked;
+            var playlistEntryPimaryKey = $(this).find('PRIMARYKEY');
+            var plyaListEntryExtendData = $(this).find('EXTENDEDDATA');
+            var playListEntryKey = playlistEntryPimaryKey.attr('KEY');
+            var playListEntryStartTime = plyaListEntryExtendData.attr('STARTTIME');
+            var playListEntrySartTimeAsDate = (new Date).clearTime().addSeconds(playListEntryStartTime);
+            var playListEntryPackedDate = plyaListEntryExtendData.attr('STARTDATE');
+            var playListEntryUnpackedYear = playListEntryPackedDate >> 16;
+            var playListEntryUnpackedMonth = (playListEntryPackedDate >> 8) & 255;
+            var playListEntryUnpackedDay = playListEntryPackedDate & 255;
+            var playListEntryDate = new Date(playListEntryUnpackedYear,
+                (playListEntryUnpackedMonth - 1),
+                playListEntryUnpackedDay,
+                playListEntrySartTimeAsDate.getHours(),
+                playListEntrySartTimeAsDate.getMinutes(),
+                playListEntrySartTimeAsDate.getSeconds());
+            var timeSpan = new TimeSpan(playListEntryDate - initalDateAsDate);
+            var absoluteTime = (new Date).clearTime().addHours(timeSpan.hours).addMinutes(timeSpan.minutes)
+                .addSeconds(timeSpan.seconds);
+            var targetTime = needAbsoluteTime ? absoluteTime : playListEntryDate;
+            collectionEntries.each(function () {
+                var collectionEntryArtist = $(this).attr('ARTIST');
+                var collectionEntryTile = $(this).attr('TITLE');
+                var collectionEntryLocation = $(this).find('LOCATION');
+                if (collectionEntryLocation.attr('VOLUMEID') + collectionEntryLocation.attr('DIR')
+                    + collectionEntryLocation.attr('FILE') == playListEntryKey) {
+                    playlistOutput.push('<li>' + targetTime.toString('HH:mm:ss') + ' '
+                        + $.trim(collectionEntryArtist) + ' - '
+                        + $.trim(collectionEntryTile) + '</li>');
+                }
+            });
+        });
+        
+        var playList = document.getElementById('playlist');
+        playList.innerHTML = '<ul>' + playlistOutput.join('') + '</ul>';
+        playList.className = 'dashed-border';
+    };
+};
 
-        // Setup the dnd listeners.
-        var dropZone = document.getElementById('drop_zone');
-        dropZone.addEventListener('dragover', $scope.handleDragOver, false);
-        dropZone.addEventListener('drop', $scope.handleFileSelect, false);
-    }]);
+document.addEventListener('DOMContentLoaded', function () {
+    var Requirments = 'Sorry your browser doesn\'t support File API. :(';
+    var result = null;
+    var xmlDom = null;
+    var collectionEntries = null;
+    var playListEntries = null;
+    var initialPackedDate = null;
+    var initalDateAsDate = null;
+    var initialUnpackedYear = null;
+    var initialUnpackedMonth = null;
+    var initialUnpackedDay = null;
+    var initialTime = null;
+    var initialTimeAsDate = null;
+    var playlistOutput = [];
+
+    if (window.File && window.FileReader && window.FileList && window.Blob) {
+        Requirments = 'All requirments are met.';
+    }
+
+    var requirmentsElement = document.getElementById('requirments');
+    requirmentsElement.textContent = Requirments;
+
+    // Setup the dnd listeners.
+    var dropZone = document.getElementById('drop_zone');
+    dropZone.addEventListener('dragover', handleDragOver, false);
+    dropZone.addEventListener('drop', handleFileSelect, false);
+});
